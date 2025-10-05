@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Calcuingo{% endblock %}
+
+{% block main_class %}profile-page{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-user-circle me-2"></i>
+                Your Profile
+            </h1>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- User Stats -->
+        <div class="col-lg-8">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-star text-warning" style="font-size: 2rem;"></i>
+                            <h3 class="mt-2">{{ user.xp }}</h3>
+                            <p class="text-muted mb-0">Total XP</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-fire text-danger" style="font-size: 2rem;"></i>
+                            <h3 class="mt-2">{{ user.streak }}</h3>
+                            <p class="text-muted mb-0">Day Streak</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-check-circle text-success" style="font-size: 2rem;"></i>
+                            <h3 class="mt-2">{{ completed_lessons }}</h3>
+                            <p class="text-muted mb-0">Lessons Completed</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-chart-line text-info" style="font-size: 2rem;"></i>
+                            <h3 class="mt-2">{{ (completed_lessons / total_lessons * 100)|round }}%</h3>
+                            <p class="text-muted mb-0">Progress</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-trophy me-2"></i>
+                        Overall Progress
+                    </h5>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-gradient" 
+                             style="width: {{ (completed_lessons / total_lessons * 100)|round }}%">
+                            {{ (completed_lessons / total_lessons * 100)|round }}%
+                        </div>
+                    </div>
+                    <small class="text-muted">
+                        {{ completed_lessons }} of {{ total_lessons }} lessons completed
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- User Info & Badges -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-user me-2"></i>
+                        User Information
+                    </h5>
+                    <p><strong>Username:</strong> {{ user.username }}</p>
+                    <p><strong>Member since:</strong> {{ user.last_login.strftime('%B %d, %Y') if user.last_login else 'Recently' }}</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-medal me-2"></i>
+                        Badges
+                    </h5>
+                    {% if user.get_badges() %}
+                        {% for badge in user.get_badges() %}
+                        <div class="badge-item mb-2">
+                            <i class="fas fa-award text-warning me-2"></i>
+                            <span>{{ badge }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No badges yet. Keep learning to earn your first badge! 🏆</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-rocket me-2"></i>
+                        Quick Actions
+                    </h5>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('learning_path') }}" class="btn btn-primary">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            Back to Learning Path
+                        </a>
+                        <button class="btn btn-outline-secondary" onclick="location.reload()">
+                            <i class="fas fa-sync me-1"></i>
+                            Refresh Stats
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

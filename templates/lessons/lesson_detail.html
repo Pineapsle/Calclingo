@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lesson.title }} - Calcuingo{% endblock %}
+
+{% block main_class %}lesson-page{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Lesson Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{{ url_for('learning_path') }}">
+                            <i class="fas fa-home"></i> Learning Path
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active">{{ lesson.title }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Lesson Info -->
+        <div class="col-lg-4 mb-4">
+            <div class="card lesson-info-card">
+                <div class="card-body">
+                    <h2 class="card-title text-primary">
+                        <i class="fas fa-book me-2"></i>
+                        {{ lesson.title }}
+                    </h2>
+                    <p class="card-text">{{ lesson.description }}</p>
+                    
+                    <div class="lesson-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-star text-warning"></i>
+                            <span>{{ lesson.xp_reward }} XP Reward</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-list-ol text-info"></i>
+                            <span>{{ exercises|length }} Exercises</span>
+                        </div>
+                        {% if user_progress %}
+                        <div class="stat-item">
+                            <i class="fas fa-chart-line text-success"></i>
+                            <span>{{ (user_progress.score * 100)|round }}% Complete</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if user_progress and user_progress.completed %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Lesson Completed! Great job! 🎉
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Exercises -->
+        <div class="col-lg-8">
+            <div class="exercises-container">
+                <h3 class="mb-4">
+                    <i class="fas fa-tasks me-2"></i>
+                    Exercises
+                </h3>
+                
+                {% if exercises %}
+                    {% for exercise in exercises %}
+                    <div class="exercise-card mb-3" data-exercise-id="{{ exercise.id }}">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="exercise-header">
+                                    <h5 class="exercise-title">
+                                        Exercise {{ loop.index }}
+                                        <span class="badge bg-secondary ms-2">{{ exercise.type.replace('_', ' ').title() }}</span>
+                                    </h5>
+                                </div>
+                                
+                                <div class="exercise-content">
+                                    <p class="exercise-question">{{ exercise.question }}</p>
+                                    
+                                    {% if exercise.type == 'multiple_choice' %}
+                                        <div class="exercise-options">
+                                            {% for option in exercise.get_options() %}
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" 
+                                                       name="exercise_{{ exercise.id }}" 
+                                                       value="{{ option }}" 
+                                                       id="option_{{ exercise.id }}_{{ loop.index }}">
+                                                <label class="form-check-label" for="option_{{ exercise.id }}_{{ loop.index }}">
+                                                    {{ option }}
+                                                </label>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    
+                                    {% elif exercise.type == 'fill_blank' %}
+                                        <div class="exercise-input">
+                                            <input type="text" 
+                                                   class="form-control" 
+                                                   name="exercise_{{ exercise.id }}"
+                                                   placeholder="Enter your answer...">
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="exercise-actions mt-3">
+                                        <button class="btn btn-primary submit-answer" 
+                                                data-exercise-id="{{ exercise.id }}"
+                                                data-lesson-id="{{ lesson.id }}">
+                                            <i class="fas fa-check me-1"></i>
+                                            Submit Answer
+                                        </button>
+                                        
+                                        {% if exercise.hint %}
+                                        <button class="btn btn-outline-info ms-2 show-hint" 
+                                                data-hint="{{ exercise.hint }}">
+                                            <i class="fas fa-lightbulb me-1"></i>
+                                            Show Hint
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="exercise-feedback mt-3" style="display: none;">
+                                        <!-- Feedback will be shown here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No exercises available for this lesson yet.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Submit answer functionality
+    document.querySelectorAll('.submit-answer').forEach(button => {
+        button.addEventListener('click', function() {
+            const exerciseId = this.dataset.exerciseId;
+            const lessonId = this.dataset.lessonId;
+            const exerciseCard = this.closest('.exercise-card');
+            
+            // Get the selected answer
+            let answer = '';
+            const radioInputs = exerciseCard.querySelectorAll('input[type="radio"]:checked');
+            const textInput = exerciseCard.querySelector('input[type="text"]');
+            
+            if (radioInputs.length > 0) {
+                answer = radioInputs[0].value;
+            } else if (textInput) {
+                answer = textInput.value;
+            }
+            
+            if (!answer) {
+                alert('Please select or enter an answer!');
+                return;
+            }
+            
+            // Submit to backend
+            fetch(`/lessons/${lessonId}/submit`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    exercise_id: exerciseId,
+                    answer: answer
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const feedbackDiv = exerciseCard.querySelector('.exercise-feedback');
+                feedbackDiv.style.display = 'block';
+                
+                if (data.correct) {
+                    feedbackDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            ${data.message}
+                            ${data.xp_earned ? `<br><small>+${data.xp_earned} XP earned!</small>` : ''}
+                        </div>
+                    `;
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-check me-1"></i>Completed';
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-success');
+                } else {
+                    feedbackDiv.innerHTML = `
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            ${data.message}
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error submitting answer. Please try again.');
+            });
+        });
+    });
+    
+    // Show hint functionality
+    document.querySelectorAll('.show-hint').forEach(button => {
+        button.addEventListener('click', function() {
+            const hint = this.dataset.hint;
+            const exerciseCard = this.closest('.exercise-card');
+            const feedbackDiv = exerciseCard.querySelector('.exercise-feedback');
+            
+            feedbackDiv.style.display = 'block';
+            feedbackDiv.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Hint:</strong> ${hint}
+                </div>
+            `;
+        });
+    });
+});
+</script>
+{% endblock %}

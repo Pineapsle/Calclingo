@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Learning Path - Calcuingo{% endblock %}
+
+{% block main_class %}learning-path-page{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold text-primary mb-3">
+                    <i class="fas fa-graduation-cap me-3"></i>
+                    Your Calculus Journey
+                </h1>
+                <p class="lead text-muted">Master calculus step by step with our gamified learning experience</p>
+                
+                {% if not session.user_id %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <a href="{{ url_for('auth.register') }}" class="alert-link">Sign up</a> to track your progress and earn XP!
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Learning Path -->
+            <div class="learning-path-container">
+                <div class="path-line"></div>
+                
+                <div class="lessons-grid">
+                    {% for lesson in lessons %}
+                    <div class="lesson-node-container" data-lesson-id="{{ lesson.id }}">
+                        <!-- Connection Line -->
+                        {% if not loop.last %}
+                        <div class="connection-line"></div>
+                        {% endif %}
+                        
+                        <!-- Lesson Node -->
+                        <div class="lesson-node 
+                            {% if session.user_id and user_progress.get(lesson.id) and user_progress[lesson.id].completed %}completed
+                            {% elif session.user_id and (loop.first or (user_progress.get(lessons[loop.index0-1]) and user_progress[lessons[loop.index0-1]].completed)) %}available
+                            {% else %}locked{% endif %}"
+                            data-lesson-id="{{ lesson.id }}"
+                            data-order="{{ lesson.order }}">
+                            
+                            <!-- Node Icon -->
+                            <div class="node-icon">
+                                {% if session.user_id and user_progress.get(lesson.id) and user_progress[lesson.id].completed %}
+                                    <i class="fas fa-check-circle"></i>
+                                {% elif session.user_id and (loop.first or (user_progress.get(lessons[loop.index0-1]) and user_progress[lessons[loop.index0-1]].completed)) %}
+                                    <i class="fas fa-play-circle"></i>
+                                {% else %}
+                                    <i class="fas fa-lock"></i>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Node Content -->
+                            <div class="node-content">
+                                <h5 class="lesson-title">{{ lesson.title }}</h5>
+                                <p class="lesson-description">{{ lesson.description }}</p>
+                                
+                                <!-- XP Reward -->
+                                <div class="xp-reward">
+                                    <i class="fas fa-star text-warning"></i>
+                                    <span>{{ lesson.xp_reward }} XP</span>
+                                </div>
+                                
+                                <!-- Progress Indicator -->
+                                {% if session.user_id and user_progress.get(lesson.id) %}
+                                <div class="progress-indicator">
+                                    <div class="progress" style="height: 4px;">
+                                        <div class="progress-bar bg-success" 
+                                             style="width: {{ (user_progress[lesson.id].score * 100)|round }}%"></div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Hover Effect -->
+                            <div class="node-hover">
+                                {% if session.user_id and (loop.first or (user_progress.get(lessons[loop.index0-1]) and user_progress[lessons[loop.index0-1]].completed)) %}
+                                    <a href="{{ url_for('lessons.lesson_detail', lesson_id=lesson.id) }}" 
+                                       class="btn btn-primary btn-sm">
+                                        <i class="fas fa-arrow-right me-1"></i>
+                                        Start Lesson
+                                    </a>
+                                {% elif session.user_id and user_progress.get(lesson.id) and user_progress[lesson.id].completed %}
+                                    <a href="{{ url_for('lessons.lesson_detail', lesson_id=lesson.id) }}" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-redo me-1"></i>
+                                        Review
+                                    </a>
+                                {% else %}
+                                    <span class="locked-text">
+                                        <i class="fas fa-lock me-1"></i>
+                                        Complete previous lesson
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Mascot -->
+            <div class="mascot-container">
+                <div class="mascot" id="calcy-parrot">
+                    <div class="mascot-body">
+                        <i class="fas fa-dove"></i>
+                    </div>
+                    <div class="mascot-speech" id="mascot-speech">
+                        <p>Ready to start your calculus adventure? 🧮</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate lesson nodes on load
+    const nodes = document.querySelectorAll('.lesson-node');
+    nodes.forEach((node, index) => {
+        setTimeout(() => {
+            node.style.opacity = '1';
+            node.style.transform = 'translateY(0)';
+        }, index * 200);
+    });
+    
+    // Mascot interactions
+    const mascot = document.getElementById('calcy-parrot');
+    const speech = document.getElementById('mascot-speech');
+    
+    // Random mascot messages
+    const messages = [
+        "Ready to start your calculus adventure? 🧮",
+        "Math is fun when you understand it! 📚",
+        "Every expert was once a beginner! 🌟",
+        "You've got this! Keep going! 💪",
+        "Calculus is just organized common sense! 🎯"
+    ];
+    
+    setInterval(() => {
+        const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+        speech.querySelector('p').textContent = randomMessage;
+        speech.classList.add('show');
+        setTimeout(() => speech.classList.remove('show'), 3000);
+    }, 10000);
+    
+    // Lesson node hover effects
+    nodes.forEach(node => {
+        node.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px) scale(1.05)';
+        });
+        
+        node.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+});
+</script>
+{% endblock %}
