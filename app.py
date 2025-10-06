@@ -3,26 +3,30 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 import os
 
+# Initialize Flask application
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'calcuingo-secret-key-2024'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///calcuingo.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Import models first
+# Configuration settings
+# TODO: Move to environment variables for production security
+app.config['SECRET_KEY'] = 'calcuingo-secret-key-2024'  # Used for session management
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///calcuingo.db'  # SQLite database file location
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable SQLAlchemy event system
+
+# Import database models first (required before db initialization)
 from models import db, User, Lesson, Exercise, Progress
 
-# Initialize db with app
+# Initialize SQLAlchemy database with Flask app
 db.init_app(app)
 
-# Import routes
-from routes.auth import auth_bp
-from routes.lessons import lessons_bp
-from routes.progress import progress_bp
+# Import route blueprints (modular route organization)
+from routes.auth import auth_bp      # Authentication routes (login, register, logout)
+from routes.lessons import lessons_bp  # Lesson-related routes (view lessons, exercises)
+from routes.progress import progress_bp  # User progress tracking routes
 
-# Register blueprints
-app.register_blueprint(auth_bp, url_prefix='/auth')
-app.register_blueprint(lessons_bp, url_prefix='/lessons')
-app.register_blueprint(progress_bp, url_prefix='/progress')
+# Register route blueprints with URL prefixes
+app.register_blueprint(auth_bp, url_prefix='/auth')      # Routes: /auth/login, /auth/register, etc.
+app.register_blueprint(lessons_bp, url_prefix='/lessons')  # Routes: /lessons/1, /lessons/1/exercises, etc.
+app.register_blueprint(progress_bp, url_prefix='/progress')  # Routes: /progress/save, /progress/update, etc.
 
 @app.route('/')
 def index():
@@ -31,29 +35,40 @@ def index():
 
 @app.route('/learning-path')
 def learning_path():
-    """Main learning path page with Duolingo-style nodes"""
+    """
+    Main learning path page with Duolingo-style nodes
+    Displays all lessons in order and user progress if logged in
+    """
+    # Get all lessons ordered by their sequence
     lessons = Lesson.query.order_by(Lesson.order).all()
     
-    # Get user progress if logged in
+    # Get user progress if logged in (for showing completion status)
     user_progress = {}
     if 'user_id' in session:
         user_id = session['user_id']
         progress_records = Progress.query.filter_by(user_id=user_id).all()
+        # Create a dictionary mapping lesson_id to progress record for easy lookup
         user_progress = {p.lesson_id: p for p in progress_records}
     
     return render_template('learning_path.html', lessons=lessons, user_progress=user_progress)
 
 @app.route('/profile')
 def profile():
-    """User profile page showing XP, streak, badges"""
+    """
+    User profile page showing XP, streak, badges, and learning statistics
+    Requires user to be logged in
+    """
+    # Check if user is logged in
     if 'user_id' not in session:
         return redirect(url_for('auth.login'))
     
+    # Get user from database
     user = User.query.get(session['user_id'])
     if not user:
+        # User doesn't exist (session invalid), redirect to login
         return redirect(url_for('auth.login'))
     
-    # Get user's completed lessons
+    # Calculate user's learning statistics
     completed_lessons = Progress.query.filter_by(user_id=user.id, completed=True).count()
     total_lessons = Lesson.query.count()
     

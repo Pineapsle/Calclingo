@@ -9,7 +9,7 @@ from models import Lesson
 
 def main():
     """Initialize database and start the app"""
-    print("🧮 Starting Calcuingo...")
+    print("Starting Calcuingo...")
     
     with app.app_context():
         # Create all database tables
@@ -24,9 +24,9 @@ def main():
         else:
             print("✅ Database already has data")
     
-    print("\n🚀 Starting Flask server...")
-    print("📍 Open: http://localhost:5000")
-    print("🛑 Press Ctrl+C to stop")
+    print("\nStarting Flask server...")
+    print("Open: http://localhost:5000")
+    print("Press Ctrl+C to stop")
     print("=" * 50)
     
     # Start the Flask app
@@ -34,3 +34,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
