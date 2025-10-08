@@ -14,15 +14,15 @@ def main():
     with app.app_context():
         # Create all database tables
         db.create_all()
-        print("✅ Database tables created")
+        print("Database tables created")
         
         # Check if we need to create dummy data
         if Lesson.query.count() == 0:
-            print("📚 Creating dummy data...")
+            print("Creating dummy data...")
             from dummy_data import create_dummy_data
             create_dummy_data()
         else:
-            print("✅ Database already has data")
+            print("Database already has data")
     
     print("\nStarting Flask server...")
     print("Open: http://localhost:5000")

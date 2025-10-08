@@ -35,16 +35,16 @@
                     
                     <div class="lesson-stats">
                         <div class="stat-item">
-                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star"></i>
                             <span>{{ lesson.xp_reward }} XP Reward</span>
                         </div>
                         <div class="stat-item">
-                            <i class="fas fa-list-ol text-info"></i>
+                            <i class="fas fa-list-ol"></i>
                             <span>{{ exercises|length }} Exercises</span>
                         </div>
                         {% if user_progress %}
                         <div class="stat-item">
-                            <i class="fas fa-chart-line text-success"></i>
+                            <i class="fas fa-chart-line"></i>
                             <span>{{ (user_progress.score * 100)|round }}% Complete</span>
                         </div>
                         {% endif %}
@@ -70,7 +70,7 @@
                 
                 {% if exercises %}
                     {% for exercise in exercises %}
-                    <div class="exercise-card mb-3" data-exercise-id="{{ exercise.id }}">
+                    <div class="exercise-card" data-exercise-id="{{ exercise.id }}">
                         <div class="card">
                             <div class="card-body">
                                 <div class="exercise-header">
@@ -83,50 +83,52 @@
                                 <div class="exercise-content">
                                     <p class="exercise-question">{{ exercise.question }}</p>
                                     
-                                    {% if exercise.type == 'multiple_choice' %}
-                                        <div class="exercise-options">
-                                            {% for option in exercise.get_options() %}
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" 
-                                                       name="exercise_{{ exercise.id }}" 
-                                                       value="{{ option }}" 
-                                                       id="option_{{ exercise.id }}_{{ loop.index }}">
-                                                <label class="form-check-label" for="option_{{ exercise.id }}_{{ loop.index }}">
-                                                    {{ option }}
-                                                </label>
-                                            </div>
-                                            {% endfor %}
-                                        </div>
-                                    
-                                    {% elif exercise.type == 'fill_blank' %}
-                                        <div class="exercise-input">
-                                            <input type="text" 
-                                                   class="form-control" 
-                                                   name="exercise_{{ exercise.id }}"
-                                                   placeholder="Enter your answer...">
-                                        </div>
-                                    {% endif %}
-                                    
-                                    <div class="exercise-actions mt-3">
-                                        <button class="btn btn-primary submit-answer" 
-                                                data-exercise-id="{{ exercise.id }}"
-                                                data-lesson-id="{{ lesson.id }}">
-                                            <i class="fas fa-check me-1"></i>
-                                            Submit Answer
-                                        </button>
+                                    <form method="POST" action="{{ url_for('lessons.submit_exercise', lesson_id=lesson.id) }}">
+                                        <input type="hidden" name="exercise_id" value="{{ exercise.id }}">
                                         
-                                        {% if exercise.hint %}
-                                        <button class="btn btn-outline-info ms-2 show-hint" 
-                                                data-hint="{{ exercise.hint }}">
-                                            <i class="fas fa-lightbulb me-1"></i>
-                                            Show Hint
-                                        </button>
+                                        {% if exercise.type == 'multiple_choice' %}
+                                            <div class="exercise-options">
+                                                {% for option in exercise.get_options() %}
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" 
+                                                           name="answer" 
+                                                           value="{{ option }}" 
+                                                           id="option_{{ exercise.id }}_{{ loop.index }}"
+                                                           required>
+                                                    <label class="form-check-label" for="option_{{ exercise.id }}_{{ loop.index }}">
+                                                        {{ option }}
+                                                    </label>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        
+                                        {% elif exercise.type == 'fill_blank' %}
+                                            <div class="exercise-input">
+                                                <input type="text" 
+                                                       class="form-control" 
+                                                       name="answer"
+                                                       placeholder="Enter your answer..."
+                                                       required>
+                                            </div>
                                         {% endif %}
-                                    </div>
-                                    
-                                    <div class="exercise-feedback mt-3" style="display: none;">
-                                        <!-- Feedback will be shown here -->
-                                    </div>
+                                        
+                                        <div class="exercise-actions mt-3">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-check me-1"></i>
+                                                Submit Answer
+                                            </button>
+                                            
+                                            {% if exercise.hint %}
+                                            <button type="button" class="btn btn-outline-info ms-2" 
+                                                    data-bs-toggle="tooltip" 
+                                                    data-bs-placement="top" 
+                                                    title="{{ exercise.hint }}">
+                                                <i class="fas fa-lightbulb me-1"></i>
+                                                Show Hint
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -142,94 +144,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Submit answer functionality
-    document.querySelectorAll('.submit-answer').forEach(button => {
-        button.addEventListener('click', function() {
-            const exerciseId = this.dataset.exerciseId;
-            const lessonId = this.dataset.lessonId;
-            const exerciseCard = this.closest('.exercise-card');
-            
-            // Get the selected answer
-            let answer = '';
-            const radioInputs = exerciseCard.querySelectorAll('input[type="radio"]:checked');
-            const textInput = exerciseCard.querySelector('input[type="text"]');
-            
-            if (radioInputs.length > 0) {
-                answer = radioInputs[0].value;
-            } else if (textInput) {
-                answer = textInput.value;
-            }
-            
-            if (!answer) {
-                alert('Please select or enter an answer!');
-                return;
-            }
-            
-            // Submit to backend
-            fetch(`/lessons/${lessonId}/submit`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    exercise_id: exerciseId,
-                    answer: answer
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                const feedbackDiv = exerciseCard.querySelector('.exercise-feedback');
-                feedbackDiv.style.display = 'block';
-                
-                if (data.correct) {
-                    feedbackDiv.innerHTML = `
-                        <div class="alert alert-success">
-                            <i class="fas fa-check-circle me-2"></i>
-                            ${data.message}
-                            ${data.xp_earned ? `<br><small>+${data.xp_earned} XP earned!</small>` : ''}
-                        </div>
-                    `;
-                    this.disabled = true;
-                    this.innerHTML = '<i class="fas fa-check me-1"></i>Completed';
-                    this.classList.remove('btn-primary');
-                    this.classList.add('btn-success');
-                } else {
-                    feedbackDiv.innerHTML = `
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            ${data.message}
-                        </div>
-                    `;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error submitting answer. Please try again.');
-            });
-        });
-    });
-    
-    // Show hint functionality
-    document.querySelectorAll('.show-hint').forEach(button => {
-        button.addEventListener('click', function() {
-            const hint = this.dataset.hint;
-            const exerciseCard = this.closest('.exercise-card');
-            const feedbackDiv = exerciseCard.querySelector('.exercise-feedback');
-            
-            feedbackDiv.style.display = 'block';
-            feedbackDiv.innerHTML = `
-                <div class="alert alert-info">
-                    <i class="fas fa-lightbulb me-2"></i>
-                    <strong>Hint:</strong> ${hint}
-                </div>
-            `;
-        });
-    });
-});
-</script>
 {% endblock %}

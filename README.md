@@ -1,147 +1,104 @@
-# 🧮 Calcuingo - Duolingo-style Calculus Learning App
+# Calcuingo - Modern Calculus Learning App
 
-A gamified web application for learning calculus step by step, inspired by Duolingo's engaging learning experience.
+A clean, modern web application for learning calculus with a focus on simplicity and modularity.
 
-## ✨ Features
+## Features
 
-- **🎯 Duolingo-style Learning Path**: Visual progression through calculus topics
-- **📚 Multiple Exercise Types**: Multiple choice, fill-in-the-blank, drag-and-drop
-- **🏆 Gamification**: XP points, streaks, badges, and achievements
-- **📱 Responsive Design**: Works on desktop and mobile devices
-- **🎨 Beautiful UI**: Colorful, animated interface with "Calcy the Parrot" mascot
-- **🔐 User Authentication**: Login/register system with progress tracking
+- **6 Core Topics**: Functions & Graphs, Limits, Derivatives, Product & Chain Rule, Integrals, Series & Sequences
+- **User Authentication**: Simple login/logout system
+- **Progress Tracking**: XP system and completion tracking
+- **No JavaScript**: Pure server-side rendering for simplicity
+- **Modular Design**: Easy to add/remove topics
+- **Modern UI**: Clean, responsive design
 
-## 🚀 Quick Start
+## Quick Start
 
-### Prerequisites
-- Python 3.8+
-- pip (Python package installer)
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd Calcuingo
-   ```
-
-2. **Install dependencies**
+1. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Run the application**
+2. Run the application:
    ```bash
    python start.py
    ```
 
-4. **Open your browser**
-   Navigate to `http://localhost:5000`
+3. Open your browser to `http://localhost:5000`
 
-## 📖 Learning Path
+## Adding/Removing Topics
 
-The app includes a structured learning path with these calculus topics:
+The application is designed to be easily modifiable. To add or remove topics:
 
-1. **Functions & Graphs** - Basic function concepts and graphing
-2. **Limits** - Understanding limits and continuity  
-3. **Derivatives** - Power rule and basic differentiation
-4. **Product & Chain Rule** - Advanced differentiation techniques
-5. **Integrals** - Introduction to integration
-6. **Series & Sequences** - Convergence and Taylor series
+1. **Edit `config.py`**: Modify the `LEARNING_TOPICS` list to add/remove topics
+2. **Add Exercises**: Update the `EXERCISE_TEMPLATES` dictionary with exercises for new topics
+3. **Restart the app**: The changes will be applied on the next startup
 
-## 🎮 Exercise Types
+### Example: Adding a New Topic
 
-- **Multiple Choice**: Select the correct answer from options
-- **Fill-in-the-Blank**: Type your answer directly
-- **Drag & Drop**: Match functions with their derivatives (coming soon)
-- **Interactive Graphs**: Plot functions and visualize concepts (coming soon)
+```python
+# In config.py, add to LEARNING_TOPICS:
+{
+    'title': 'Advanced Integration',
+    'description': 'Integration by parts and substitution',
+    'order': 7,
+    'xp_reward': 40,
+    'prerequisites': [6]
+}
 
-## 🏗️ Project Structure
+# Add exercises to EXERCISE_TEMPLATES:
+7: [
+    {
+        'type': 'multiple_choice',
+        'question': 'What is ∫x·e^x dx?',
+        'answer': 'x·e^x - e^x + C',
+        'options': ['x·e^x - e^x + C', 'x·e^x + C', 'e^x + C', 'x·e^x'],
+        'hint': 'Use integration by parts: ∫u dv = uv - ∫v du'
+    }
+]
+```
+
+## Project Structure
 
 ```
 Calcuingo/
-├── app.py                 # Flask application entry point
-├── models.py              # Database models (User, Lesson, Exercise, Progress)
-├── dummy_data.py          # Sample data for testing
-├── requirements.txt       # Python dependencies
-├── routes/                # Blueprint modules
-│   ├── __init__.py
-│   ├── auth.py           # Authentication routes
-│   ├── lessons.py        # Lesson and exercise routes
-│   └── progress.py       # Progress tracking routes
-├── templates/            # Jinja2 HTML templates
-│   ├── base.html         # Base template
-│   ├── learning_path.html # Main learning path page
-│   ├── profile.html      # User profile page
-│   ├── auth/            # Authentication templates
-│   └── lessons/         # Lesson templates
-└── static/              # Static assets
-    ├── css/
-    │   └── style.css    # Custom styling
-    └── js/
-        └── main.js      # JavaScript functionality
+├── app.py              # Main Flask application
+├── models.py           # Database models
+├── config.py           # Configuration (topics, exercises)
+├── dummy_data.py       # Data initialization
+├── start.py            # Application starter
+├── routes/             # Route modules
+│   ├── auth.py         # Authentication routes
+│   ├── lessons.py     # Lesson routes
+│   └── progress.py     # Progress tracking
+├── templates/          # HTML templates
+├── static/css/         # Stylesheets
+└── instance/           # Database files
 ```
 
-## 🎨 Design Features
+## Key Design Decisions
 
-- **Duolingo-inspired UI**: Bright colors, rounded corners, smooth animations
-- **Responsive Grid**: Adapts to different screen sizes
-- **Interactive Elements**: Hover effects, click animations, progress indicators
-- **Mascot Character**: "Calcy the Parrot" provides encouragement and hints
-- **Gamification**: XP bars, streak counters, achievement badges
+- **No JavaScript**: Everything works with server-side rendering for simplicity
+- **Modular Topics**: Easy to modify the curriculum by editing `config.py`
+- **Clean UI**: Modern, responsive design without complex animations
+- **Simple Authentication**: Basic login/logout without complex features
+- **Progress Tracking**: XP and completion system for motivation
 
-## 🔧 Development
+## Technology Stack
 
-### Adding New Lessons
+- **Backend**: Flask (Python)
+- **Database**: SQLite
+- **Frontend**: Bootstrap 5 + Custom CSS
+- **Authentication**: Flask sessions
+- **Styling**: Modern CSS with CSS variables
 
-1. Add lesson data to `dummy_data.py`
-2. Create exercises for the lesson
-3. Update the learning path template if needed
+## Development
 
-### Adding New Exercise Types
+To modify the application:
 
-1. Add the exercise type to the `Exercise` model
-2. Create a template for the exercise type
-3. Add JavaScript handling for the exercise type
-4. Update the lesson detail template
+1. **Topics**: Edit `config.py` → `LEARNING_TOPICS`
+2. **Exercises**: Edit `config.py` → `EXERCISE_TEMPLATES`
+3. **Styling**: Edit `static/css/style.css`
+4. **Routes**: Modify files in `routes/` directory
+5. **Templates**: Update HTML files in `templates/`
 
-### Customizing the UI
-
-- Modify `static/css/style.css` for styling changes
-- Update `static/js/main.js` for JavaScript functionality
-- Edit templates in the `templates/` directory
-
-## 🚀 Deployment
-
-The app is ready for deployment on platforms like:
-- **Heroku**: Add a `Procfile` and configure environment variables
-- **Render**: Connect your GitHub repository
-- **AWS**: Use Elastic Beanstalk or EC2
-- **DigitalOcean**: Deploy as a Python app
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📝 License
-
-This project is open source and available under the MIT License.
-
-## 🎯 Future Enhancements
-
-- [ ] Interactive graph exercises with Plotly.js
-- [ ] Advanced drag-and-drop matching
-- [ ] Social features (leaderboards, friends)
-- [ ] Mobile app version
-- [ ] Advanced analytics and progress tracking
-- [ ] More calculus topics (multivariable, differential equations)
-
----
-
-**Happy Learning! 🧮✨**
-
-*Made with ❤️ for calculus lovers*
+The application is designed to be simple, maintainable, and easy to extend.
