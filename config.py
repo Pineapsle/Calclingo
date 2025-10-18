@@ -137,3 +137,4 @@ APP_CONFIG = {
         'Calculus Champion', 'Perfect Score', 'Streak Master'
     ]
 }
+

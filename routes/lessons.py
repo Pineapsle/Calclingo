@@ -45,7 +45,7 @@ def submit_exercise(lesson_id):
     
     if not exercise_id or not user_answer:
         flash('Please provide an answer', 'error')
-        return redirect(url_for('lessons.lesson_detail', lesson_id=lesson_id))
+        return redirect(url_for('lessons.lesson_detail', lesson_id=lesson_id)) # Might need to change this cause we getting an error when we submit an answer. Redirect error. CD out and then into the current directory
     
     exercise = Exercise.query.get_or_404(exercise_id)
     lesson = Lesson.query.get_or_404(lesson_id)

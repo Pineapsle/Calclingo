@@ -1,4 +1,20 @@
+# Core Flask dependencies
 Flask==2.3.3
 Flask-SQLAlchemy==3.0.5
 Werkzeug==2.3.7
 Jinja2==3.1.2
+
+# Database adapters
+psycopg2-binary==2.9.7  # PostgreSQL adapter for Python
+SQLAlchemy==2.0.23
+
+# Security and production dependencies
+gunicorn==21.2.0  # WSGI HTTP Server for production
+python-dotenv==1.0.0  # Environment variable management
+flask-cors==4.0.0  # Cross-Origin Resource Sharing support
+
+# Development dependencies (optional)
+pytest==7.4.3  # Testing framework
+pytest-flask==1.3.0  # Flask testing utilities
+black==23.9.1  # Code formatter
+flake8==6.1.0  # Linting tool

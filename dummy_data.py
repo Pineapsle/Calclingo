@@ -39,4 +39,4 @@ def create_dummy_data():
             db.session.add(exercise)
     
     db.session.commit()
-    print("✅ Dummy data created successfully from configuration!")
+    print("Dummy data created successfully from configuration!")

@@ -7,10 +7,19 @@ import os
 app = Flask(__name__)
 
 # Configuration settings
-# TODO: Move to environment variables for production security
-app.config['SECRET_KEY'] = 'calcuingo-secret-key-2024'  # Used for session management
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///calcuingo.db'  # SQLite database file location
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable SQLAlchemy event system
+
+# Security configuration
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'calcuingo-secret-key-2024-dev-only')
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
+
+# Database configuration
+database_url = os.environ.get('DATABASE_URL', 'sqlite:///calcuingo.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Production settings
+app.config['DEBUG'] = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+app.config['TESTING'] = False
 
 # Import database models first (required before db initialization)
 from models import db, User, Lesson, Exercise, Progress
@@ -77,6 +86,20 @@ def profile():
                          completed_lessons=completed_lessons,
                          total_lessons=total_lessons)
 
+# Error handlers
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('errors/404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return render_template('errors/500.html'), 500
+
+@app.errorhandler(403)
+def forbidden_error(error):
+    return render_template('errors/403.html'), 403
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
@@ -86,5 +109,7 @@ if __name__ == '__main__':
             from dummy_data import create_dummy_data
             create_dummy_data()
     
-    app.run(debug=True)
+    # Use environment variable for debug mode
+    debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(debug=debug_mode, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
 
