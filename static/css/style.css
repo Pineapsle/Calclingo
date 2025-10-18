@@ -11,6 +11,7 @@
     --danger-color: #ef4444;
     --warning-color: #f59e0b;
     --light-bg: #f8fafc;
+    --dark-bg: #1e1632;
     --text-dark: #1e293b;
     --text-muted: #64748b;
     --border-color: #e2e8f0;
@@ -22,7 +23,7 @@
 /* Global Styles */
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: var(--light-bg);
+    background-color: var(--dark-bg);
     color: var(--text-dark);
     line-height: 1.6;
 }
@@ -407,6 +408,21 @@ body {
     color: var(--dark-mode-text) !important;
 }
 
+.dark-mode body,
+.dark-mode .learning-path-page,
+.dark-mode .lesson-page,
+.dark-mode .profile-page {
+    background-color: var(--dark-mode-bg) !important;
+    color: var(--dark-mode-text) !important;
+}
+
+.dark-mode .lesson-title,
+.dark-mode .exercise-title,
+.dark-mode .exercise-question,
+.dark-mode .stat-item {
+    color: var(--dark-mode-text) !important;
+}
+
 .dark-mode .navbar {
     background-color: #1e293b !important;
     border-bottom-color: #334155 !important;
@@ -525,7 +541,7 @@ body {
 }
 
 .dark-mode .text-muted {
-    color: #94a3b8 !important;
+    color: #beccde !important;
 }
 
 .dark-mode .text-primary {
