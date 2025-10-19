@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, flash
+from flask import Blueprint, render_template, request, session, redirect, url_for, flash
 from models import Lesson, Exercise, Progress, User, db
-from datetime import datetime
+from datetime import datetime, timezone
 
 lessons_bp = Blueprint('lessons', __name__)
 
@@ -63,23 +63,28 @@ def submit_exercise(lesson_id):
     if not progress:
         progress = Progress(user_id=user_id, lesson_id=lesson_id)
         db.session.add(progress)
-    
-    progress.attempts += 1
-    progress.last_attempt = datetime.utcnow()
-    
+
+    # Ensure numeric fields are initialized to avoid TypeError when None
+    progress.attempts = (progress.attempts or 0) + 1
+    # Use timezone-aware UTC datetime
+    progress.last_attempt = datetime.now(timezone.utc)
+
     if is_correct:
-        progress.score = max(progress.score, 1.0)  # Full points for correct answer
+        # Ensure score is not None before comparing
+        current_score = float(progress.score or 0.0)
+        progress.score = max(current_score, 1.0)  # Full points for correct answer
         progress.completed = True
-        
+
         # Award XP to user
         user = User.query.get(user_id)
-        user.xp += lesson.xp_reward
-        db.session.commit()
-        
+        if user is not None:
+            user.xp = (user.xp or 0) + lesson.xp_reward
+
         flash(f'Great job! 🎉 You earned {lesson.xp_reward} XP!', 'success')
     else:
-        # Commit the attempt even for wrong answers
-        db.session.commit()
         flash(f'Not quite right. {exercise.hint or "Try again!"}', 'warning')
+
+    # Commit all changes (progress, user XP, etc.) together
+    db.session.commit()
     
     return redirect(url_for('lessons.lesson_detail', lesson_id=lesson_id))

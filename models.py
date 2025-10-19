@@ -105,10 +105,10 @@ class Progress(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'), nullable=False)
-    completed = db.Column(db.Boolean, default=False)
-    score = db.Column(db.Float, default=0.0)
-    attempts = db.Column(db.Integer, default=0)
-    last_attempt = db.Column(db.DateTime, default=datetime.utcnow)
+    completed = db.Column(db.Boolean, nullable=False, default=False)
+    score = db.Column(db.Float, nullable=False, default=0.0)
+    attempts = db.Column(db.Integer, nullable=False, default=0)
+    last_attempt = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     
     def __repr__(self):
         return f'<Progress {self.user_id}-{self.lesson_id}>'
